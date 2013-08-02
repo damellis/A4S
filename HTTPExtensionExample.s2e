@@ -1,0 +1,12 @@
+{	"extensionName": "Extension Example",
+	"extensionPort": 12345,
+	"blockSpecs": [
+		[" ", "beep", "playBeep"],
+		[" ", "set beep volume to %n", "setVolume", 5],
+		["r", "beep volume", "volume"],
+	],
+    "useHTTP": true,
+    "sensorNames": [
+		"volume",
+    ],
+}
