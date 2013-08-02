@@ -18,7 +18,19 @@ public class HTTPExtensionExample {
 	private static InputStream sockIn;
 	private static OutputStream sockOut;
 
+	private static Arduino arduino;
+
 	public static void main(String[] args) throws IOException {
+		try {
+			if (args.length < 1) {
+				System.err.println("Please specify serial port on command line.");
+				return;
+			}
+			arduino = new Arduino(args[0]);
+		} catch (Exception e) {
+			System.err.println(e);
+		}
+		
 		InetAddress addr = InetAddress.getLocalHost();
 		System.out.println("HTTPExtensionExample helper app started on " + addr.toString());
 		
@@ -96,6 +108,21 @@ public class HTTPExtensionExample {
 		String response = "okay";
 		String[] parts = cmdAndArgs.split("/");
 		String cmd = parts[0];
+		
+		try {
+			if (cmd.equals("pinOutput")) {
+				arduino.pinMode(Integer.parseInt(parts[1]), Arduino.OUTPUT);
+			} else if (cmd.equals("pinInput")) {
+				arduino.pinMode(Integer.parseInt(parts[1]), Arduino.INPUT);
+			} else if (cmd.equals("pinHigh")) {
+				arduino.digitalWrite(Integer.parseInt(parts[1]), Arduino.HIGH);
+			} else if (cmd.equals("pinLow")) {
+				arduino.digitalWrite(Integer.parseInt(parts[1]), Arduino.LOW);
+			}
+		} catch (IOException e) {
+			System.err.println(e);
+		}
+		
 		if (cmd.equals("playBeep")) {
 			java.awt.Toolkit.getDefaultToolkit().beep();
 		} else if (cmd.equals("volume")) {

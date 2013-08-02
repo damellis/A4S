@@ -23,10 +23,20 @@
  * $Id$
  */
  
-package cc.arduino;
+import gnu.io.CommPort;
+import gnu.io.CommPortIdentifier;
+import gnu.io.SerialPort;
+import gnu.io.SerialPortEvent;
+import gnu.io.SerialPortEventListener;
+import gnu.io.NoSuchPortException;
+import gnu.io.PortInUseException;
+import gnu.io.UnsupportedCommOperationException;
 
-import processing.core.PApplet;
-import processing.serial.Serial;
+import java.io.FileDescriptor;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.TooManyListenersException;
 
 /**
  * Together with the Firmata 2 firmware (an Arduino sketch uploaded to the
@@ -86,11 +96,11 @@ public class Arduino {
   private final int SYSTEM_RESET           = 0xFF; // reset from MIDI
   private final int START_SYSEX            = 0xF0; // start a MIDI SysEx message
   private final int END_SYSEX              = 0xF7; // end a MIDI SysEx message
-
-  PApplet parent;
-  Serial serial;
-  SerialProxy serialProxy;
   
+  SerialPort serialPort;
+  InputStream in;
+  OutputStream out;
+
   int waitForData = 0;
   int executeMultiByteCommand = 0;
   int multiByteChannel = 0;
@@ -105,77 +115,67 @@ public class Arduino {
   int majorVersion = 0;
   int minorVersion = 0;
   
-  // We need a class descended from PApplet so that we can override the
-  // serialEvent() method to capture serial data.  We can't use the Arduino
-  // class itself, because PApplet defines a list() method that couldn't be
-  // overridden by the static list() method we use to return the available
-  // serial ports.  This class needs to be public so that the Serial class
-  // can access its serialEvent() method.
-  public class SerialProxy extends PApplet {
-    public SerialProxy() {
-    }
-
-    public void serialEvent(Serial which) {
-      // Notify the Arduino class that there's serial data for it to process.
-      while (available() > 0)
-        processInput();
-    }
-  }
-  
-  public void dispose() {
-    this.serial.dispose();
-  }
-  
   /**
    * Get a list of the available Arduino boards; currently all serial devices
    * (i.e. the same as Serial.list()).  In theory, this should figure out
    * what's an Arduino board and what's not.
    */
   public static String[] list() {
-    return Serial.list();
+    return new String[] {};
   }
 
   /**
    * Create a proxy to an Arduino board running the Firmata 2 firmware at the
    * default baud rate of 57600.
    *
-   * @param parent the Processing sketch creating this Arduino board
-   * (i.e. "this").
    * @param iname the name of the serial device associated with the Arduino
    * board (e.g. one the elements of the array returned by Arduino.list())
    */
-  public Arduino(PApplet parent, String iname) {
-    this(parent, iname, 57600);
+  public Arduino(String iname) throws NoSuchPortException, PortInUseException, UnsupportedCommOperationException, IOException, TooManyListenersException {
+    this(iname, 57600);
   }
   
   /**
    * Create a proxy to an Arduino board running the Firmata 2 firmware.
    *
-   * @param parent the Processing sketch creating this Arduino board
-   * (i.e. "this").
    * @param iname the name of the serial device associated with the Arduino
    * board (e.g. one the elements of the array returned by Arduino.list())
    * @param irate the baud rate to use to communicate with the Arduino board
    * (the firmata library defaults to 57600, and the examples use this rate,
    * but other firmwares may override it)
    */
-  public Arduino(PApplet parent, String iname, int irate) {
-    this.parent = parent;
-    this.serialProxy = new SerialProxy();
-    this.serial = new Serial(serialProxy, iname, irate);
-
+  public Arduino(String iname, int irate) throws NoSuchPortException, PortInUseException, UnsupportedCommOperationException, IOException, TooManyListenersException {
+    CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(iname);
+    CommPort commPort = portIdentifier.open(this.getClass().getName(),2000);
+    
+    if ( commPort instanceof SerialPort )
+    {
+      serialPort = (SerialPort) commPort;
+      serialPort.setSerialPortParams(irate,SerialPort.DATABITS_8,SerialPort.STOPBITS_1,SerialPort.PARITY_NONE);
+      
+      in = serialPort.getInputStream();
+      out = serialPort.getOutputStream();
+      
+      serialPort.addEventListener(new SerialReader());
+      serialPort.notifyOnDataAvailable(true);
+    }
+    else
+    {
+      System.out.println("Error: Only serial ports are handled by this example.");
+    }
+    
     try {
-      Thread.sleep(3000);
+      Thread.sleep(3000); // let bootloader timeout
     } catch (InterruptedException e) {}
 		
     for (int i = 0; i < 6; i++) {
-      serial.write(REPORT_ANALOG | i);
-      serial.write(1);
+      out.write(REPORT_ANALOG | i);
+      out.write(1);
     }
 
     for (int i = 0; i < 2; i++) {
-      serial.write(REPORT_DIGITAL | i);
-      serial.write(1);
+      out.write(REPORT_DIGITAL | i);
+      out.write(1);
     }
   }
   
@@ -205,10 +205,10 @@ public class Arduino {
    * @param pin the pin whose mode to set (from 2 to 13)
    * @param mode either Arduino.INPUT or Arduino.OUTPUT
    */
-  public void pinMode(int pin, int mode) {
-    serial.write(SET_PIN_MODE);
-    serial.write(pin);
-    serial.write(mode);
+  public void pinMode(int pin, int mode) throws IOException {
+    out.write(SET_PIN_MODE);
+    out.write(pin);
+    out.write(mode);
   }
 
   /**
@@ -219,7 +219,7 @@ public class Arduino {
    * @param value the value to write: Arduino.LOW (0 volts) or Arduino.HIGH
    * (5 volts)
    */
-  public void digitalWrite(int pin, int value) {
+  public void digitalWrite(int pin, int value) throws IOException {
     int portNumber = (pin >> 3) & 0x0F;
   
     if (value == 0)
@@ -227,9 +227,9 @@ public class Arduino {
     else
       digitalOutputData[portNumber] |= (1 << (pin & 0x07));
 
-    serial.write(DIGITAL_MESSAGE | portNumber);
-    serial.write(digitalOutputData[portNumber] & 0x7F);
-    serial.write(digitalOutputData[portNumber] >> 7);
+    out.write(DIGITAL_MESSAGE | portNumber);
+    out.write(digitalOutputData[portNumber] & 0x7F);
+    out.write(digitalOutputData[portNumber] >> 7);
   }
   
   /**
@@ -240,11 +240,11 @@ public class Arduino {
    * @param the value: 0 being the lowest (always off), and 255 the highest
    * (always on)
    */
-  public void analogWrite(int pin, int value) {
+  public void analogWrite(int pin, int value) throws IOException {
     pinMode(pin, PWM);
-    serial.write(ANALOG_MESSAGE | (pin & 0x0F));
-    serial.write(value & 0x7F);
-    serial.write(value >> 7);
+    out.write(ANALOG_MESSAGE | (pin & 0x0F));
+    out.write(value & 0x7F);
+    out.write(value >> 7);
   }
 
   private void setDigitalInputs(int portNumber, int portData) {
@@ -263,13 +263,23 @@ public class Arduino {
     this.minorVersion = minorVersion;
   }
 
-  private int available() {
-    return serial.available();
+  private int available() throws IOException {
+    return in.available();
   }
 
-  private void processInput() {
-    int inputData = serial.read();
-	  int command;
+  public class SerialReader implements SerialPortEventListener {
+    public void serialEvent(SerialPortEvent e) {
+      try {
+        while (available() > 0) processInput();
+      } catch (IOException err) {
+        System.err.println(err);
+      }
+    }
+  }
+  
+  private void processInput() throws IOException {
+    int inputData = in.read();
+    int command;
     
     if (parsingSysex) {
       if (inputData == END_SYSEX) {

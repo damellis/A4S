@@ -1,12 +1,13 @@
 {	"extensionName": "Extension Example",
 	"extensionPort": 12345,
 	"blockSpecs": [
-		[" ", "beep", "playBeep"],
-		[" ", "set beep volume to %n", "setVolume", 5],
-		["r", "beep volume", "volume"],
+		[" ", "set pin %n high", "pinHigh", 13],
+		[" ", "set pin %n low", "pinLow", 13],
+		[" ", "set pin %n as output", "pinOutput", 13],
+		[" ", "set pin %n as input", "pinInput", 13],
+		["b", "pin %n", "digitalRead", 13],
 	],
     "useHTTP": true,
     "sensorNames": [
-		"volume",
     ],
 }
