@@ -5,9 +5,10 @@
 		[" ", "set pin %n low", "pinLow", 13],
 		[" ", "set pin %n as output", "pinOutput", 13],
 		[" ", "set pin %n as input", "pinInput", 13],
-		["b", "pin %n", "digitalRead", 13],
+		["r", "read pin", "pin12"],
 	],
     "useHTTP": true,
     "sensorNames": [
+        "pin12",
     ],
 }

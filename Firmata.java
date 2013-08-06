@@ -1,5 +1,5 @@
 /**
- * Arduino.java - Arduino/firmata library for Processing
+ * Firmata.java - Arduino/firmata library for Java
  * Copyright (C) 2006-08 David A. Mellis 
  *
  * This library is free software; you can redistribute it and/or
@@ -17,7 +17,7 @@
  * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, MA  02111-1307  USA
  *
- * Processing code to communicate with the Arduino Firmata 2 firmware.
+ * Java code to communicate with the Arduino Firmata 2 firmware.
  * http://firmata.org/
  *
  * $Id$
@@ -44,7 +44,7 @@ import java.util.TooManyListenersException;
  * Processing: reading from and writing to the digital pins and reading the
  * analog inputs.
  */
-public class Arduino {
+public class Firmata {
   /**
    * Constant to set a pin to input mode (in a call to pinMode()).
    */
@@ -131,7 +131,7 @@ public class Arduino {
    * @param iname the name of the serial device associated with the Arduino
    * board (e.g. one the elements of the array returned by Arduino.list())
    */
-  public Arduino(String iname) throws NoSuchPortException, PortInUseException, UnsupportedCommOperationException, IOException, TooManyListenersException {
+  public Firmata(String iname) throws NoSuchPortException, PortInUseException, UnsupportedCommOperationException, IOException, TooManyListenersException {
     this(iname, 57600);
   }
   
@@ -144,7 +144,7 @@ public class Arduino {
    * (the firmata library defaults to 57600, and the examples use this rate,
    * but other firmwares may override it)
    */
-  public Arduino(String iname, int irate) throws NoSuchPortException, PortInUseException, UnsupportedCommOperationException, IOException, TooManyListenersException {
+  public Firmata(String iname, int irate) throws NoSuchPortException, PortInUseException, UnsupportedCommOperationException, IOException, TooManyListenersException {
     CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(iname);
     CommPort commPort = portIdentifier.open(this.getClass().getName(),2000);
     
@@ -280,7 +280,7 @@ public class Arduino {
   private void processInput() throws IOException {
     int inputData = in.read();
     int command;
-    
+	  
     if (parsingSysex) {
       if (inputData == END_SYSEX) {
         parsingSysex = false;

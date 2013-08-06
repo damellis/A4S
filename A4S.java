@@ -1,8 +1,14 @@
-// HTTPExtensionExample.java
+// A4S.java
 // Copyright (c) MIT Media Laboratory, 2013
 //
-// This example Scratch helper app runs a tiny HTTP server that allows Scratch to
-// play a beep sound and set and get the value of a variable named 'volume'.
+// Helper app that runs an HTTP server allowing Scratch to communicate with
+// Arduino boards running the Firmata firmware (StandardFirmata example).
+//
+// Note: the Scratch extension mechanism is a work-in-progress and still
+// evolving. This code will need updates to work with future version of Scratch.
+//
+// Based on HTTPExtensionExample by John Maloney. Adapted for Arduino and
+// Firmata by David Mellis.
 //
 // Inspired by Tom Lauwers Finch/Hummingbird server and Conner Hudson's Snap extensions.
 
@@ -10,7 +16,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class HTTPExtensionExample {
+public class A4S {
 
 	private static final int PORT = 12345; // set to your extension's port number
 	private static int volume = 8; // replace with your extension's data, if any
@@ -18,7 +24,7 @@ public class HTTPExtensionExample {
 	private static InputStream sockIn;
 	private static OutputStream sockOut;
 
-	private static Arduino arduino;
+	private static Firmata arduino;
 
 	public static void main(String[] args) throws IOException {
 		try {
@@ -26,7 +32,7 @@ public class HTTPExtensionExample {
 				System.err.println("Please specify serial port on command line.");
 				return;
 			}
-			arduino = new Arduino(args[0]);
+			arduino = new Firmata(args[0]);
 		} catch (Exception e) {
 			System.err.println(e);
 		}
@@ -109,43 +115,36 @@ public class HTTPExtensionExample {
 		String[] parts = cmdAndArgs.split("/");
 		String cmd = parts[0];
 		
+		System.out.print(cmdAndArgs);
+		
 		try {
 			if (cmd.equals("pinOutput")) {
-				arduino.pinMode(Integer.parseInt(parts[1]), Arduino.OUTPUT);
+				arduino.pinMode(Integer.parseInt(parts[1]), Firmata.OUTPUT);
 			} else if (cmd.equals("pinInput")) {
-				arduino.pinMode(Integer.parseInt(parts[1]), Arduino.INPUT);
+				arduino.pinMode(Integer.parseInt(parts[1]), Firmata.INPUT);
 			} else if (cmd.equals("pinHigh")) {
-				arduino.digitalWrite(Integer.parseInt(parts[1]), Arduino.HIGH);
+				arduino.digitalWrite(Integer.parseInt(parts[1]), Firmata.HIGH);
 			} else if (cmd.equals("pinLow")) {
-				arduino.digitalWrite(Integer.parseInt(parts[1]), Arduino.LOW);
+				arduino.digitalWrite(Integer.parseInt(parts[1]), Firmata.LOW);
+			} else if (cmd.equals("pin12")) {
+				response = arduino.digitalRead(12) + "\n";
+			} else if (cmd.equals("poll")) {
+				// set response to a collection of sensor, value pairs, one pair per line
+				// in this example there is only one sensor, "volume"
+				//response = "volume " + volume + "\n";
+			} else {
+				response = "unknown command: " + cmd;
 			}
+			System.out.println(" " + response);
+			sendResponse(response);
 		} catch (IOException e) {
 			System.err.println(e);
 		}
-		
-		if (cmd.equals("playBeep")) {
-			java.awt.Toolkit.getDefaultToolkit().beep();
-		} else if (cmd.equals("volume")) {
-			response = volume + "\n";
-		} else if (cmd.equals("setVolume")) {
-			volume = Integer.parseInt(parts[1]);
-		} else if (cmd.equals("poll")) {
-			// set response to a collection of sensor, value pairs, one pair per line
-			// in this example there is only one sensor, "volume"
-			response = "volume " + volume + "\n";
-		} else {
-			response = "unknown command: " + cmd;
-		}
-		sendResponse(response);
 	}
 
 	private static void doHelp() {
 		// Optional: return a list of commands understood by this server
 		String help = "HTTP Extension Example Server<br><br>";
-		help += "playBeep - play the system beep<br>";
-		help += "poll - return all sensor values, one sensor per line, with the sensor name and value separated by a space<br>";
-		help += "setVolume/[num] - set the volume to the given number (0-10)<br>";
-		help += "volume - return the current volume<br>";
 		sendResponse(help);
 	}
 

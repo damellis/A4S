@@ -1,4 +1,4 @@
 #!/bin/sh
-javac HTTPExtensionExample.java Arduino.java
-jar -cfm HTTPExtensionExample.jar manifest.mf *.class
+javac A4S.java Firmata.java
+jar -cfm A4S.jar manifest.mf *.class
 rm *.class 
