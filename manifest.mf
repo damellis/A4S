@@ -1,1 +1,2 @@
 Main-Class: A4S
+Class-Path: A4S.jar

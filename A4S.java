@@ -16,6 +16,17 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import gnu.io.CommPort;
+import gnu.io.CommPortIdentifier;
+import gnu.io.SerialPort;
+import gnu.io.SerialPortEvent;
+import gnu.io.SerialPortEventListener;
+import gnu.io.NoSuchPortException;
+import gnu.io.PortInUseException;
+import gnu.io.UnsupportedCommOperationException;
+
+import org.firmata.Firmata;
+
 public class A4S {
 
 	private static final int PORT = 12345; // set to your extension's port number
@@ -24,6 +35,7 @@ public class A4S {
 	private static InputStream sockIn;
 	private static OutputStream sockOut;
 
+	private static SerialPort serialPort;
 	private static Firmata arduino;
 
 	public static void main(String[] args) throws IOException {
@@ -32,9 +44,24 @@ public class A4S {
 				System.err.println("Please specify serial port on command line.");
 				return;
 			}
-			arduino = new Firmata(args[0]);
+			CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(args[0]);
+			CommPort commPort = portIdentifier.open("A4S",2000);
+
+			if ( commPort instanceof SerialPort )
+			{
+				serialPort = (SerialPort) commPort;
+				serialPort.setSerialPortParams(57600,SerialPort.DATABITS_8,SerialPort.STOPBITS_1,SerialPort.PARITY_NONE);
+
+				arduino = new Firmata(serialPort.getInputStream(), serialPort.getOutputStream());
+			}
+			else
+			{
+				System.out.println("Error: Only serial ports are handled by this example.");
+				return;
+			}
 		} catch (Exception e) {
 			System.err.println(e);
+			return;
 		}
 		
 		InetAddress addr = InetAddress.getLocalHost();
