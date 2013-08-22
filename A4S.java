@@ -37,6 +37,18 @@ public class A4S {
 
 	private static SerialPort serialPort;
 	private static Firmata arduino;
+	
+	private static SerialReader reader;
+	
+	public static class SerialReader implements SerialPortEventListener {
+		public void serialEvent(SerialPortEvent e) {
+			try {
+				while (arduino.available() > 0) arduino.processInput();
+			} catch (IOException err) {
+				System.err.println(err);
+			}
+		}
+	}
 
 	public static void main(String[] args) throws IOException {
 		try {
@@ -53,6 +65,10 @@ public class A4S {
 				serialPort.setSerialPortParams(57600,SerialPort.DATABITS_8,SerialPort.STOPBITS_1,SerialPort.PARITY_NONE);
 
 				arduino = new Firmata(serialPort.getInputStream(), serialPort.getOutputStream());
+				reader = new SerialReader();
+				
+				serialPort.addEventListener(reader);
+				serialPort.notifyOnDataAvailable(true);
 			}
 			else
 			{
