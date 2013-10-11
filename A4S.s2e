@@ -1,14 +1,18 @@
-{	"extensionName": "Extension Example",
+{	"extensionName": "A4S (Arduino For Scratch)",
 	"extensionPort": 12345,
 	"blockSpecs": [
-		[" ", "set pin %n high", "pinHigh", 13],
-		[" ", "set pin %n low", "pinLow", 13],
-		[" ", "set pin %n as output", "pinOutput", 13],
-		[" ", "set pin %n as input", "pinInput", 13],
-		["r", "read pin", "pin12"],
+//		[" ", "set pin %n high", "pinHigh", 13],
+//		[" ", "set pin %n low", "pinLow", 13],
+//		[" ", "set pin %n as output", "pinOutput", 13],
+//		[" ", "set pin %n as input", "pinInput", 13],
+
+		[" ", "set pin %n as %m.inputOutput", "pinMode", 2, "input"],
+		[" ", "digital write pin %n %m.highLow", "digitalWrite", 13, "high"],
+		["b", "digital read pin %n", "digitalRead", 2],
+		["r", "analog read pin %n", "analogRead", 0],
 	],
-    "useHTTP": true,
-    "sensorNames": [
-        "pin12",
-    ],
+	"menus": {
+		"inputOutput": ["input", "output"],
+		"highLow": ["high", "low"],
+	},
 }

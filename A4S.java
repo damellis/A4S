@@ -43,7 +43,7 @@ public class A4S {
 	public static class SerialReader implements SerialPortEventListener {
 		public void serialEvent(SerialPortEvent e) {
 			try {
-				while (arduino.available() > 0) arduino.processInput();
+				while (serialPort.getInputStream().available() > 0) arduino.processInput();
 			} catch (IOException err) {
 				System.err.println(err);
 			}
@@ -158,7 +158,7 @@ public class A4S {
 		String[] parts = cmdAndArgs.split("/");
 		String cmd = parts[0];
 		
-		System.out.print(cmdAndArgs);
+		//System.out.print(cmdAndArgs);
 		
 		try {
 			if (cmd.equals("pinOutput")) {
@@ -169,16 +169,25 @@ public class A4S {
 				arduino.digitalWrite(Integer.parseInt(parts[1]), Firmata.HIGH);
 			} else if (cmd.equals("pinLow")) {
 				arduino.digitalWrite(Integer.parseInt(parts[1]), Firmata.LOW);
-			} else if (cmd.equals("pin12")) {
-				response = arduino.digitalRead(12) + "\n";
+			} else if (cmd.equals("pinMode")) {
+				arduino.pinMode(Integer.parseInt(parts[1]), "input".equals(parts[2]) ? Firmata.INPUT : Firmata.OUTPUT);
+			} else if (cmd.equals("digitalWrite")) {
+				arduino.digitalWrite(Integer.parseInt(parts[1]), "high".equals(parts[2]) ? Firmata.HIGH : Firmata.LOW);
 			} else if (cmd.equals("poll")) {
 				// set response to a collection of sensor, value pairs, one pair per line
 				// in this example there is only one sensor, "volume"
 				//response = "volume " + volume + "\n";
+				response = "";
+				for (int i = 2; i <= 13; i++) {
+					response += "digitalRead/" + i + " " + (arduino.digitalRead(i) == Firmata.HIGH ? "true" : "false") + "\n";
+				}
+				for (int i = 0; i <= 5; i++) {
+					response += "analogRead/" + i + " " + (arduino.analogRead(i)) + "\n";
+				}
 			} else {
 				response = "unknown command: " + cmd;
 			}
-			System.out.println(" " + response);
+			//System.out.println(" " + response);
 			sendResponse(response);
 		} catch (IOException e) {
 			System.err.println(e);
