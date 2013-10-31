@@ -1,2 +1,2 @@
 Main-Class: A4S
-Class-Path: A4S.jar
+Class-Path: RXTXComm.jar A4S.jar
