@@ -43,7 +43,22 @@ public class A4S {
 	public static class SerialReader implements SerialPortEventListener {
 		public void serialEvent(SerialPortEvent e) {
 			try {
-				while (serialPort.getInputStream().available() > 0) arduino.processInput();
+				while (serialPort.getInputStream().available() > 0) {
+					int n = serialPort.getInputStream().read();
+					//System.out.println(">" + n);
+					arduino.processInput(n);
+				}
+			} catch (IOException err) {
+				System.err.println(err);
+			}
+		}
+	}
+
+	public static class FirmataWriter implements Firmata.Writer {
+		public void write(int val) {
+			try {
+				//System.out.println("<" + val);
+				serialPort.getOutputStream().write(val);
 			} catch (IOException err) {
 				System.err.println(err);
 			}
@@ -64,11 +79,17 @@ public class A4S {
 				serialPort = (SerialPort) commPort;
 				serialPort.setSerialPortParams(57600,SerialPort.DATABITS_8,SerialPort.STOPBITS_1,SerialPort.PARITY_NONE);
 
-				arduino = new Firmata(serialPort.getInputStream(), serialPort.getOutputStream());
+				arduino = new Firmata(new FirmataWriter());
 				reader = new SerialReader();
 				
 				serialPort.addEventListener(reader);
 				serialPort.notifyOnDataAvailable(true);
+				
+				try {
+					Thread.sleep(3000); // let bootloader timeout
+				} catch (InterruptedException e) {}
+				
+				arduino.init();
 			}
 			else
 			{
@@ -160,38 +181,34 @@ public class A4S {
 		
 		//System.out.print(cmdAndArgs);
 		
-		try {
-			if (cmd.equals("pinOutput")) {
-				arduino.pinMode(Integer.parseInt(parts[1]), Firmata.OUTPUT);
-			} else if (cmd.equals("pinInput")) {
-				arduino.pinMode(Integer.parseInt(parts[1]), Firmata.INPUT);
-			} else if (cmd.equals("pinHigh")) {
-				arduino.digitalWrite(Integer.parseInt(parts[1]), Firmata.HIGH);
-			} else if (cmd.equals("pinLow")) {
-				arduino.digitalWrite(Integer.parseInt(parts[1]), Firmata.LOW);
-			} else if (cmd.equals("pinMode")) {
-				arduino.pinMode(Integer.parseInt(parts[1]), "input".equals(parts[2]) ? Firmata.INPUT : Firmata.OUTPUT);
-			} else if (cmd.equals("digitalWrite")) {
-				arduino.digitalWrite(Integer.parseInt(parts[1]), "high".equals(parts[2]) ? Firmata.HIGH : Firmata.LOW);
-			} else if (cmd.equals("poll")) {
-				// set response to a collection of sensor, value pairs, one pair per line
-				// in this example there is only one sensor, "volume"
-				//response = "volume " + volume + "\n";
-				response = "";
-				for (int i = 2; i <= 13; i++) {
-					response += "digitalRead/" + i + " " + (arduino.digitalRead(i) == Firmata.HIGH ? "true" : "false") + "\n";
-				}
-				for (int i = 0; i <= 5; i++) {
-					response += "analogRead/" + i + " " + (arduino.analogRead(i)) + "\n";
-				}
-			} else {
-				response = "unknown command: " + cmd;
+		if (cmd.equals("pinOutput")) {
+			arduino.pinMode(Integer.parseInt(parts[1]), Firmata.OUTPUT);
+		} else if (cmd.equals("pinInput")) {
+			arduino.pinMode(Integer.parseInt(parts[1]), Firmata.INPUT);
+		} else if (cmd.equals("pinHigh")) {
+			arduino.digitalWrite(Integer.parseInt(parts[1]), Firmata.HIGH);
+		} else if (cmd.equals("pinLow")) {
+			arduino.digitalWrite(Integer.parseInt(parts[1]), Firmata.LOW);
+		} else if (cmd.equals("pinMode")) {
+			arduino.pinMode(Integer.parseInt(parts[1]), "input".equals(parts[2]) ? Firmata.INPUT : Firmata.OUTPUT);
+		} else if (cmd.equals("digitalWrite")) {
+			arduino.digitalWrite(Integer.parseInt(parts[1]), "high".equals(parts[2]) ? Firmata.HIGH : Firmata.LOW);
+		} else if (cmd.equals("poll")) {
+			// set response to a collection of sensor, value pairs, one pair per line
+			// in this example there is only one sensor, "volume"
+			//response = "volume " + volume + "\n";
+			response = "";
+			for (int i = 2; i <= 13; i++) {
+				response += "digitalRead/" + i + " " + (arduino.digitalRead(i) == Firmata.HIGH ? "true" : "false") + "\n";
 			}
-			//System.out.println(" " + response);
-			sendResponse(response);
-		} catch (IOException e) {
-			System.err.println(e);
+			for (int i = 0; i <= 5; i++) {
+				response += "analogRead/" + i + " " + (arduino.analogRead(i)) + "\n";
+			}
+		} else {
+			response = "unknown command: " + cmd;
 		}
+		//System.out.println(" " + response);
+		sendResponse(response);
 	}
 
 	private static void doHelp() {
