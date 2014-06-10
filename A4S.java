@@ -216,15 +216,15 @@ public class A4S {
 		//System.out.println(" " + response);
 		sendResponse(response);
 	}
-    private static int getFirmataPinMode(String a4sPinMode){
-        int idx=0;
-        boolean found = false;
-        while (idx < a4sPinModes.length && ! (found=a4sPinMode.equals(a4sPinModes[idx++])));
-        if (! found){
-            idx=0;         
-        } 
-        return firmataPinModes[idx];
-    }
+	private static int getFirmataPinMode(String a4sPinMode){
+	int idx=0;
+	boolean found = false;
+	while (idx < a4sPinModes.length && ! (found=a4sPinMode.equals(a4sPinModes[idx++])));
+	if (! found){
+	    idx=0;         
+	} 
+	return firmataPinModes[idx];
+	}
 	private static void doHelp() {
 		// Optional: return a list of commands understood by this server
 		String help = "HTTP Extension Example Server<br><br>";
