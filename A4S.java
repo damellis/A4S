@@ -28,7 +28,9 @@ import gnu.io.UnsupportedCommOperationException;
 import org.firmata.Firmata;
 
 public class A4S {
-
+    private enum PinMode {
+        input, output,pwm,servo;
+    }
 	private static final int PORT = 12345; // set to your extension's port number
 	private static int volume = 8; // replace with your extension's data, if any
 
@@ -190,7 +192,23 @@ public class A4S {
 		} else if (cmd.equals("pinLow")) {
 			arduino.digitalWrite(Integer.parseInt(parts[1]), Firmata.LOW);
 		} else if (cmd.equals("pinMode")) {
-			arduino.pinMode(Integer.parseInt(parts[1]), "input".equals(parts[2]) ? Firmata.INPUT : Firmata.OUTPUT);
+            PinMode pinmode = PinMode.valueOf(parts[2]);
+            int firmataMode=Firmata.INPUT;
+            switch (pinmode){
+                case input:
+                   firmataMode=Firmata.INPUT;
+                   break;
+                case output:
+                   firmataMode=Firmata.OUTPUT;
+                   break;
+                case pwm:
+                   firmataMode=Firmata.PWM;
+                   break;
+                case servo:
+                   firmataMode=Firmata.SERVO;
+                   break;
+            }
+			arduino.pinMode(Integer.parseInt(parts[1]), firmataMode);
 		} else if (cmd.equals("digitalWrite")) {
 			arduino.digitalWrite(Integer.parseInt(parts[1]), "high".equals(parts[2]) ? Firmata.HIGH : Firmata.LOW);
 		} else if (cmd.equals("analogWrite")) {
