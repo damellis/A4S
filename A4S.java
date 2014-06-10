@@ -28,11 +28,8 @@ import gnu.io.UnsupportedCommOperationException;
 import org.firmata.Firmata;
 
 public class A4S {
-    private enum PinMode {
-        input, output,pwm,servo;
-    }
-    private static int[] firmataPinModes={Firmata.INPUT,Firmata.OUTPUT,Firmata.ANALOG,Firmata.PWM,Firmata.SERVO };
-    private static String[] a4sPinModes={"Digital Input", "Digital Output","Analog Input","Analog Output(PWM)","Servo"};
+	private static int[] firmataPinModes={Firmata.INPUT,Firmata.OUTPUT,Firmata.ANALOG,Firmata.PWM,Firmata.SERVO };
+    	private static String[] a4sPinModes={"Digital Input", "Digital Output","Analog Input","Analog Output(PWM)","Servo"};
 
 	private static final int PORT = 12345; // set to your extension's port number
 	private static int volume = 8; // replace with your extension's data, if any
@@ -222,9 +219,7 @@ public class A4S {
     private static int getFirmataPinMode(String a4sPinMode){
         int idx=0;
         boolean found = false;
-        while (idx < a4sPinModes.length && ! (found=a4sPinMode.equals(a4sPinModes[idx]))  ){
-            idx++;
-        }
+        while (idx < a4sPinModes.length && ! (found=a4sPinMode.equals(a4sPinModes[idx++])));
         if (! found){
             idx=0;         
         } 
