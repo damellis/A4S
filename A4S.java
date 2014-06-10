@@ -31,6 +31,9 @@ public class A4S {
     private enum PinMode {
         input, output,pwm,servo;
     }
+    private static int[] firmataPinModes={Firmata.INPUT,Firmata.OUTPUT,Firmata.ANALOG,Firmata.PWM,Firmata.SERVO };
+    private static String[] a4sPinModes={"Digital Input", "Digital Output","Analog Input","Analog Output(PWM)","Servo"};
+
 	private static final int PORT = 12345; // set to your extension's port number
 	private static int volume = 8; // replace with your extension's data, if any
 
@@ -192,23 +195,7 @@ public class A4S {
 		} else if (cmd.equals("pinLow")) {
 			arduino.digitalWrite(Integer.parseInt(parts[1]), Firmata.LOW);
 		} else if (cmd.equals("pinMode")) {
-            PinMode pinmode = PinMode.valueOf(parts[2]);
-            int firmataMode=Firmata.INPUT;
-            switch (pinmode){
-                case input:
-                   firmataMode=Firmata.INPUT;
-                   break;
-                case output:
-                   firmataMode=Firmata.OUTPUT;
-                   break;
-                case pwm:
-                   firmataMode=Firmata.PWM;
-                   break;
-                case servo:
-                   firmataMode=Firmata.SERVO;
-                   break;
-            }
-			arduino.pinMode(Integer.parseInt(parts[1]), firmataMode);
+			arduino.pinMode(Integer.parseInt(parts[1]), getFirmataPinMode(parts[2]));
 		} else if (cmd.equals("digitalWrite")) {
 			arduino.digitalWrite(Integer.parseInt(parts[1]), "high".equals(parts[2]) ? Firmata.HIGH : Firmata.LOW);
 		} else if (cmd.equals("analogWrite")) {
@@ -232,7 +219,17 @@ public class A4S {
 		//System.out.println(" " + response);
 		sendResponse(response);
 	}
-
+    private static int getFirmataPinMode(String a4sPinMode){
+        int idx=0;
+        boolean found = false;
+        while (idx < a4sPinModes.length && ! (found=a4sPinMode.equals(a4sPinModes[idx]))  ){
+            idx++;
+        }
+        if (! found){
+            idx=0;         
+        } 
+        return firmataPinModes[idx];
+    }
 	private static void doHelp() {
 		// Optional: return a list of commands understood by this server
 		String help = "HTTP Extension Example Server<br><br>";
