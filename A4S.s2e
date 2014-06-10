@@ -8,6 +8,7 @@
 
 		[" ", "set pin %n as %m.inputOutput", "pinMode", 2, "input"],
 		[" ", "digital write pin %n %m.highLow", "digitalWrite", 13, "high"],
+		[" ", "analog write pin %n %n", "analogWrite", 3, 255],
 		["b", "digital read pin %n", "digitalRead", 2],
 		["r", "analog read pin %n", "analogRead", 0],
 	],
