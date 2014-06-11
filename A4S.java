@@ -28,6 +28,8 @@ import gnu.io.UnsupportedCommOperationException;
 import org.firmata.Firmata;
 
 public class A4S {
+	private static int[] firmataPinModes={Firmata.INPUT,Firmata.OUTPUT,Firmata.ANALOG,Firmata.PWM,Firmata.SERVO };
+    	private static String[] a4sPinModes={"Digital Input", "Digital Output","Analog Input","Analog Output(PWM)","Servo"};
 
 	private static final int PORT = 12345; // set to your extension's port number
 	private static int volume = 8; // replace with your extension's data, if any
@@ -190,9 +192,13 @@ public class A4S {
 		} else if (cmd.equals("pinLow")) {
 			arduino.digitalWrite(Integer.parseInt(parts[1]), Firmata.LOW);
 		} else if (cmd.equals("pinMode")) {
-			arduino.pinMode(Integer.parseInt(parts[1]), "input".equals(parts[2]) ? Firmata.INPUT : Firmata.OUTPUT);
+			arduino.pinMode(Integer.parseInt(parts[1]), getFirmataPinMode(parts[2]));
 		} else if (cmd.equals("digitalWrite")) {
 			arduino.digitalWrite(Integer.parseInt(parts[1]), "high".equals(parts[2]) ? Firmata.HIGH : Firmata.LOW);
+		} else if (cmd.equals("analogWrite")) {
+			arduino.analogWrite(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+		} else if (cmd.equals("servoWrite")) {
+			arduino.servoWrite(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
 		} else if (cmd.equals("poll")) {
 			// set response to a collection of sensor, value pairs, one pair per line
 			// in this example there is only one sensor, "volume"
@@ -210,7 +216,15 @@ public class A4S {
 		//System.out.println(" " + response);
 		sendResponse(response);
 	}
-
+	private static int getFirmataPinMode(String a4sPinMode){
+		int idx=0;
+		boolean found = false;
+		while (idx < a4sPinModes.length && ! (found=a4sPinMode.equals(a4sPinModes[idx++])));
+		if (! found){
+		    idx=0;         
+		} 
+		return firmataPinModes[idx];
+	}
 	private static void doHelp() {
 		// Optional: return a list of commands understood by this server
 		String help = "HTTP Extension Example Server<br><br>";
