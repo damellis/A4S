@@ -2,6 +2,8 @@
 
 A4S is an experimental extension for [Scratch 2](http://scratch.mit.edu) that allows it to communicate with [Arduino](http://www.arduino.cc) boards using [Firmata](http://firmata.org/). It consists of a Java server that Scratch connects to over HTTP and which communicates with an Arduino board over (USB) serial. A4S is being developed by David Mellis, based on documentation and code from the Scratch team. For updates, see: <https://github.com/damellis/A4S/>
 
+<br /><br />**This extension has been superseded by the new ScratchX.org site and extension system. See [the Arduino extension for ScratchX.org](http://khanning.github.io/scratch-arduino-extension/).**<br /><br /><br /><br /><br />
+
 ## Prerequisites
 
 ### Ubuntu
