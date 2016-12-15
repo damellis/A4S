@@ -15,7 +15,7 @@ Install the *librxtx-java* library : `sudo apt-get install librxtx-java`.
 2. Install the [Arduino software](http://arduino.cc/en/Main/Software). Instructions: [Windows](http://arduino.cc/en/Guide/Windows), [Mac OS X](http://arduino.cc/en/Guide/MacOSX).
 3. Upload the StandardFirmata firmware to your Arduino board. (It's in "Examples > Firmata".)
 4. [Download the A4S code](https://github.com/damellis/A4S/archive/master.zip) from GitHub and unzip it.
-5. Launch the A4S server using the "run.sh" script on the command line. Pass the name of the serial port corresponding to your Arduino board as the first argument to the script, e.g. "./run.sh /dev/tty.usbmodem411". You should see a message like: 
+5. Launch the A4S server using the "run.sh"(on Windows, "run.bat") script on the command line. Pass the name of the serial port corresponding to your Arduino board as the first argument to the script, e.g. "./run.sh /dev/tty.usbmodem411". You should see a message like: 
 
 		Stable Library
 		=========================================
